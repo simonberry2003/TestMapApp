@@ -1,11 +1,7 @@
 package stb.com.testmapapp;
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.location.Location;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
-
-import com.google.android.gms.maps.model.LatLng;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -15,7 +11,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 /**
  * Created by Simon on 28/01/2016.
  */
-public class UpdateLocationTask extends AsyncTask<LatLng, Long, Boolean> {
+public class UpdateLocationTask extends AsyncTask<Location, Long, Boolean> {
 
     private final String userEmail;
 
@@ -24,7 +20,7 @@ public class UpdateLocationTask extends AsyncTask<LatLng, Long, Boolean> {
     }
 
     @Override
-    protected Boolean doInBackground(LatLng... latLongs) {
+    protected Boolean doInBackground(Location... locations) {
 
         // Email is null if the user has not set their preferences
         if (userEmail == null)
@@ -38,8 +34,8 @@ public class UpdateLocationTask extends AsyncTask<LatLng, Long, Boolean> {
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             client.connect(options);
-            for (LatLng latLong : latLongs) {
-                MqttMessage msg = new MqttMessage((userEmail + "," + latLong.latitude + "," + latLong.longitude).getBytes());
+            for (Location location : locations) {
+                MqttMessage msg = new MqttMessage((userEmail + "," + location.getLatitude() + "," + location.getLongitude()).getBytes());
                 msg.setQos(0);
                 msg.setRetained(false);
                 client.publish("position.update", msg);

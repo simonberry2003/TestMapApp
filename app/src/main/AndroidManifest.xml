@@ -44,6 +44,8 @@
             android:label="Preferences">
         </activity>
 
+        <service android:enabled="true" android:name="stb.com.testmapapp.LocationService" />
+
     </application>
 
 </manifest>

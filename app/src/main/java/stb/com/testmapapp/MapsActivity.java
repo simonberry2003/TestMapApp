@@ -1,21 +1,24 @@
 package stb.com.testmapapp;
 
-import android.app.ActionBar;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -24,17 +27,36 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import stb.com.testmapapp.preferences.AppPreferences;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, ConnectionCallbacks {
 
-    private LocationManager locationManager;
+    private class LocationReceiver extends BroadcastReceiver {
+
+        private final LocationListener listener;
+
+        public LocationReceiver(LocationListener listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Location location = intent.getParcelableExtra("location");
+            listener.onLocationChanged(location);
+        }
+    }
+
     private GoogleMap map;
     private Marker marker;
+    private boolean zoom;
+    private GoogleApiClient googleApiClient;
+    private Intent intentService;
+    private PendingIntent pendingIntent;
+    private LocationReceiver locationReceiver;
+    private Location currentLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,12 +67,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        try {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, this);
-        } catch (SecurityException e) {
-            // Alert
-        }
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .build();
+
+        googleApiClient.connect();
+        locationReceiver = new LocationReceiver(this);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        intentFilter.addAction(LocationService.LocationUpdate);
+        registerReceiver(locationReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        googleApiClient.disconnect();
+        unregisterReceiver(locationReceiver);
     }
 
     /**
@@ -69,22 +103,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onLocationChanged(final Location location) {
-        final LatLng latLong = new LatLng(location.getLatitude(), location.getLongitude());
 
+        // Update server location
+        LatLng latLong = new LatLng(location.getLatitude(), location.getLongitude());
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         String emailAddress = SP.getString("emailAddress", null);
-        new UpdateLocationTask(emailAddress).execute(latLong);
+        new UpdateLocationTask(emailAddress).execute(location);
 
+        currentLocation = location;
+
+        plotLocation(location);
+    }
+
+    private void plotLocation(final Location location) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                boolean zoom = false;
                 if (marker != null) {
                     marker.remove();
-                } else {
-                    zoom = true;
                 }
 
+                LatLng latLong = new LatLng(location.getLatitude(), location.getLongitude());
                 int resourceId = getResources().getIdentifier("raw/dad", "raw", getPackageName());
                 BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(resourceId);
                 marker = map.addMarker(new MarkerOptions()
@@ -93,27 +132,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .icon(icon));
 
                 if (zoom) {
-                    LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                    builder.include(marker.getPosition());
-                    LatLngBounds bounds = builder.build();
-                    int padding = 0;
-                    CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-                    map.moveCamera(cu);
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15));
+                    zoom = false;
                 }
             }
         });
     }
 
     @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
+    protected void onResume() {
+        super.onResume();
+        zoom = true;
+        if (currentLocation != null) {
+            plotLocation(currentLocation);
+        }
     }
 
     @Override
-    public void onProviderEnabled(String provider) {
+    public void onConnected(Bundle bundle) {
+        try {
+            LocationRequest request = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setFastestInterval(5000L)
+                .setInterval(10000L)
+                .setSmallestDisplacement(1);
+
+            intentService = new Intent(this, LocationService.class);
+            pendingIntent = PendingIntent.getService(this, 0, intentService, PendingIntent.FLAG_UPDATE_CURRENT);
+            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, request, pendingIntent);
+        } catch (SecurityException e) {
+            // Alert
+        }
     }
 
     @Override
-    public void onProviderDisabled(String provider) {
+    public void onConnectionSuspended(int i) {
     }
 
     @Override
