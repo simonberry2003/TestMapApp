@@ -1,4 +1,4 @@
-package stb.com.testmapapp;
+package stb.com.testmapapp.Activity;
 
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -19,7 +19,6 @@ import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -30,6 +29,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import stb.com.testmapapp.Location.LocationIntent;
+import stb.com.testmapapp.Location.LocationService;
+import stb.com.testmapapp.Location.UpdateLocationTask;
+import stb.com.testmapapp.R;
 import stb.com.testmapapp.preferences.AppPreferences;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, ConnectionCallbacks {
@@ -44,7 +47,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Location location = intent.getParcelableExtra("location");
+            Location location = LocationIntent.getLocation(intent);
             listener.onLocationChanged(location);
         }
     }
@@ -76,7 +79,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationReceiver = new LocationReceiver(this);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addCategory(Intent.CATEGORY_DEFAULT);
-        intentFilter.addAction(LocationService.LocationUpdate);
+        intentFilter.addAction(LocationIntent.LocationUpdate);
         registerReceiver(locationReceiver, intentFilter);
     }
 

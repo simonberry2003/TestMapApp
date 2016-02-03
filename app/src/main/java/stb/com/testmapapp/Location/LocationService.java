@@ -1,4 +1,4 @@
-package stb.com.testmapapp;
+package stb.com.testmapapp.Location;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -11,12 +11,10 @@ public class LocationService extends IntentService {
 
     private static final long TWO_MINUTES = TimeUnit.MINUTES.toMillis(2);
 
-    public static final String LocationUpdate = "LocationUpdate";
-
     private Location currentBestLocation;
 
     public LocationService() {
-        super("LocationService");
+        super(LocationService.class.getSimpleName());
     }
 
     @Override
@@ -26,11 +24,7 @@ public class LocationService extends IntentService {
             Location location = locationResult.getLastLocation();
             if (location != null && isBetterLocation(location, currentBestLocation)) {
                 currentBestLocation = location;
-                Intent locationIntent = new Intent();
-                locationIntent.setAction(LocationUpdate);
-                locationIntent.addCategory(Intent.CATEGORY_DEFAULT);
-                locationIntent.putExtra("location", location);
-                sendBroadcast(locationIntent);
+                sendBroadcast(LocationIntent.create(location));
             }
         }
     }

@@ -31,7 +31,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".Activity.MapsActivity"
             android:label="@string/title_activity_maps" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -40,11 +40,11 @@
         </activity>
 
         <activity
-            android:name="stb.com.testmapapp.preferences.AppPreferences"
+            android:name=".preferences.AppPreferences"
             android:label="Preferences">
         </activity>
 
-        <service android:enabled="true" android:name="stb.com.testmapapp.LocationService" />
+        <service android:enabled="true" android:name=".Location.LocationService" />
 
     </application>
 

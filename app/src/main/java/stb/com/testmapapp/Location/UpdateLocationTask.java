@@ -1,4 +1,4 @@
-package stb.com.testmapapp;
+package stb.com.testmapapp.Location;
 
 import android.location.Location;
 import android.os.AsyncTask;
@@ -8,9 +8,6 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
-/**
- * Created by Simon on 28/01/2016.
- */
 public class UpdateLocationTask extends AsyncTask<Location, Long, Boolean> {
 
     private final String userEmail;
