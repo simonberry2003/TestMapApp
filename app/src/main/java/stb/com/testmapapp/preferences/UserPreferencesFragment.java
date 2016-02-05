@@ -35,7 +35,7 @@ public class UserPreferencesFragment extends PreferenceFragment implements OnSha
         preferenceUpdater.update(findPreference(key));
 
         if (PreferenceType.EmailAddress.is(key) || PreferenceType.Password.is(key)) {
-            // TODO: Login
+            // TODO: Login and send current location
             String s = "";
         }
     }
