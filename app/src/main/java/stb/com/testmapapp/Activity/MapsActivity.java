@@ -2,9 +2,7 @@ package stb.com.testmapapp.Activity;
 
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.location.Location;
-import android.preference.PreferenceManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -25,6 +23,8 @@ import stb.com.testmapapp.Location.LocationService;
 import stb.com.testmapapp.Location.UpdateLocationTask;
 import stb.com.testmapapp.R;
 import stb.com.testmapapp.preferences.AppPreferences;
+import stb.com.testmapapp.preferences.PreferenceProvider;
+import stb.com.testmapapp.preferences.PreferenceType;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, ConnectionCallbacks {
 
@@ -34,6 +34,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationPlotter locationPlotter;
     private Location currentLocation;
     private PendingIntent pendingIntent;
+    private PreferenceProvider preferenceProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +53,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         locationReceiver = new LocationReceiver(this);
         registerReceiver(locationReceiver, locationReceiver.getFilter());
+
+        preferenceProvider = new PreferenceProvider(getBaseContext());
     }
 
     @Override
@@ -69,8 +72,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onLocationChanged(Location newLocation) {
-        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        String emailAddress = SP.getString("emailAddress", null);
+        String emailAddress = preferenceProvider.getString(PreferenceType.EmailAddress);
         new UpdateLocationTask(emailAddress).execute(newLocation);
         currentLocation = newLocation;
         locationPlotter.plot(newLocation, moveToLocation);

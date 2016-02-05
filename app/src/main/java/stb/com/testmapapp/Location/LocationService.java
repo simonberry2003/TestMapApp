@@ -7,6 +7,10 @@ import com.google.android.gms.location.LocationResult;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Background service that reads the current location and if it is deemed to be a better location
+ * it is broadcast as a {@link LocationIntent} and picked up by the {@Link LocationReceiver}
+ */
 public class LocationService extends IntentService {
 
     private static final long TWO_MINUTES = TimeUnit.MINUTES.toMillis(2);

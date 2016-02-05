@@ -11,18 +11,27 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import stb.com.testmapapp.util.Preconditions;
+
+/**
+ * Plots a {@link Location} on {@link GoogleMap} and optionally moves to the location.
+ * If the marker has previously been plotted, it is removed.
+ */
 public class LocationPlotter {
     
     private final Activity activity;
-    private Marker marker;
     private GoogleMap map;
+    private Marker marker;
 
     public LocationPlotter(Activity activity, GoogleMap map) {
-        this.activity = activity;
-        this.map = map;
+        this.activity = Preconditions.checkNotNull(activity);
+        this.map = Preconditions.checkNotNull(map);
     }
 
     public void plot(final Location location, final boolean moveToLocation) {
+
+        Preconditions.checkNotNull(location);
+
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
