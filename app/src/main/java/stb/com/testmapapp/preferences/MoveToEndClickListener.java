@@ -7,7 +7,10 @@ public class MoveToEndClickListener implements Preference.OnPreferenceClickListe
     @Override
     public boolean onPreferenceClick(Preference preference) {
         EditTextPreference editPref = (EditTextPreference)preference;
-        editPref.getEditText().setSelection(editPref.getText().length());
+        String text = editPref.getText();
+        if (text != null) {
+            editPref.getEditText().setSelection(text.length());
+        }
         return true;
     }
 }

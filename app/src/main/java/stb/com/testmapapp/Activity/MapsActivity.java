@@ -1,6 +1,8 @@
 package stb.com.testmapapp.Activity;
 
+import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
@@ -55,6 +57,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         registerReceiver(locationReceiver, locationReceiver.getFilter());
 
         preferenceProvider = new PreferenceProvider(getBaseContext());
+
+        // If first run we need to show alert to get user to configure the app
+        if (preferenceProvider.getString(PreferenceType.EmailAddress) == null || preferenceProvider.getString(PreferenceType.Password) == null) {
+            Intent intent = new Intent(this, AppPreferences.class);
+            intent.putExtra(AppPreferences.SHOW_ALERT, true);
+            startActivity(intent);
+        }
     }
 
     @Override
