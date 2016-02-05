@@ -4,7 +4,8 @@ import stb.com.testmapapp.util.Preconditions;
 
 public enum PreferenceType {
 
-    EmailAddress("emailAddress");
+    EmailAddress("emailAddress"),
+    Password("password");
 
     private final String key;
 
@@ -14,5 +15,9 @@ public enum PreferenceType {
 
     public String key() {
         return key;
+    }
+
+    public boolean is(String key) {
+        return this.key.equals(key);
     }
 }

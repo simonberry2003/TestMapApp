@@ -33,6 +33,11 @@ public class UserPreferencesFragment extends PreferenceFragment implements OnSha
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         preferenceUpdater.update(findPreference(key));
+
+        if (PreferenceType.EmailAddress.is(key) || PreferenceType.Password.is(key)) {
+            // TODO: Login
+            String s = "";
+        }
     }
 
     @Override
