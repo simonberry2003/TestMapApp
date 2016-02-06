@@ -23,10 +23,11 @@ public class MqttSender implements AutoCloseable {
     private static final String CLIENT_ID = "TestClientId";
 
     private AtomicReference<MqttClient> clientReference = new AtomicReference<>();
+    private final Gson gson = new Gson();
 
     public void publish(String topic, Object payload) {
         try {
-            String json = new Gson().toJson(payload);
+            String json = gson.toJson(payload);
             MqttMessage message = new MqttMessage(json.getBytes());
             MqttClient client = getClient();
             message.setQos(0);

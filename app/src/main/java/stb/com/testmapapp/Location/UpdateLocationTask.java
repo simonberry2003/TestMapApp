@@ -2,6 +2,7 @@ package stb.com.testmapapp.Location;
 
 import android.location.Location;
 import android.os.AsyncTask;
+
 import stb.com.testmapapp.Mqtt.MqttSender;
 
 /**
@@ -28,8 +29,8 @@ public class UpdateLocationTask extends AsyncTask<Location, Long, Boolean> {
 
         try (MqttSender sender = new MqttSender()) {
             for (Location location : locations) {
-                LocationUpdateMessage message = new LocationUpdateMessage(userEmail, location.getLatitude(), location.getLongitude());
-                sender.publish(UPDATE_TOPIC, message);
+                LocationUpdate update = new LocationUpdate(userEmail, location.getLatitude(), location.getLongitude());
+                sender.publish(UPDATE_TOPIC, update);
             }
         } catch (Exception e) {
         }
